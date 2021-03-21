@@ -1,0 +1,18 @@
+.Board {
+    outline: solid 2px rgb(134, 154, 189);
+}
+
+.Board__row {
+    height: 50px;
+}
+
+.Board__cell {
+    height: 50px;
+    width: 50px;
+    outline: solid 1px rgb(134, 154, 189);
+    display: inline-block;
+}
+
+.Board__snake-cell {
+    background-color: green;
+}
