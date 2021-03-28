@@ -13,6 +13,10 @@
     display: inline-block;
 }
 
-.Board__snake-cell {
+.Board__cell--green {
     background-color: green;
+}
+
+.Board__cell--red {
+    background-color: red;
 }
