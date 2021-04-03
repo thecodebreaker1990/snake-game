@@ -3,12 +3,12 @@
 }
 
 .Board__row {
-    height: 50px;
+    height: 40px;
 }
 
 .Board__cell {
-    height: 50px;
-    width: 50px;
+    height: 40px;
+    width: 40px;
     outline: solid 1px rgb(134, 154, 189);
     display: inline-block;
 }
