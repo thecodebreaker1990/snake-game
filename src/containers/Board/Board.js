@@ -35,6 +35,14 @@ class Board extends Component {
            foodCell: snake.head.value.cell + 5 
         });
 
+        //Handle key press events
+        window.addEventListener("keydown", (event) => {
+            const newDirection = this.handleKeyboardEvent(event.code);
+            if(newDirection !== ''){
+                this.setState({ direction: newDirection });
+            }
+        });
+
        setInterval(() => {
            this.moveSnake();
        }, 1500);
@@ -83,6 +91,27 @@ class Board extends Component {
                 break;
         }
         return updatedHeadCoords;
+    }
+
+    handleKeyboardEvent(keyCode) {
+        let result = '';
+        switch (keyCode) {
+            case "ArrowUp":
+                result = Direction.UP;
+                break;
+            case "ArrowDown":
+                result = Direction.DOWN;
+                break;
+            case "ArrowLeft":
+                result = Direction.LEFT;
+                break;
+            case "ArrowRight":
+                result = Direction.RIGHT;
+                break;
+            default:
+                break;
+        }
+        return result;
     }
 
     render() {
