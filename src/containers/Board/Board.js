@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-import { createBoard, getStartingSnakeLLValue } from "../../lib/utils";
+import { randomIntFromInterval, createBoard, getStartingSnakeLLValue } from "../../lib/utils";
 import LinkedList from "../../lib/SinglyLinkedList";
 
 import classes from "./Board.module.css";
 
-const BOARD_SIZE = 10;
+const BOARD_SIZE = 15;
 const Direction = {
     LEFT: "left",
     RIGHT: "right",
@@ -45,11 +45,11 @@ class Board extends Component {
 
        setInterval(() => {
            this.moveSnake();
-       }, 1500);
+       }, 1000);
     }
 
     moveSnake() {
-        const { snake, snakeCells, direction, board } = this.state;
+        const { snake, snakeCells, foodCell, direction, board } = this.state;
         const { value: { row, col } } = snake.head;
         const currentHeadCoords = { row, col };
 
@@ -57,13 +57,19 @@ class Board extends Component {
         const nextHeadCoords = this.getNextHeadCoords(currentHeadCoords, direction);
         const nextHeadCell = board[nextHeadCoords.row][nextHeadCoords.col];
 
-        //Remove old head & set new head
-        const oldHead = snake.shift();
-        const newHead = snake.push({ row: nextHeadCoords.row, col: nextHeadCoords.col, cell: nextHeadCell });
+        //Check if nextHeadCell is going to be the foodCell
+        if(nextHeadCell === foodCell) {
+            this.handleFoodConsumption(foodCell, snakeCells);
+        }
+
+        const newHead = snake.unshift({ row: nextHeadCoords.row, col: nextHeadCoords.col, cell: nextHeadCell });
         
         const newSnakeCells = new Set(snakeCells);
-        newSnakeCells.delete(oldHead.value.cell);
+        newSnakeCells.delete(snake.tail.value.cell);
         newSnakeCells.add(nextHeadCell);
+
+        //Update tail
+        snake.pop();
 
         this.setState({
             snakeCells: newSnakeCells,
@@ -91,6 +97,17 @@ class Board extends Component {
                 break;
         }
         return updatedHeadCoords;
+    }
+
+    handleFoodConsumption(currentFoodCell, snakeCells) {
+        const maxvalue = BOARD_SIZE * BOARD_SIZE;
+        let nextFoodCell;
+        while(true) {
+            nextFoodCell = randomIntFromInterval(1, maxvalue);
+            if(snakeCells.has(nextFoodCell) || nextFoodCell === currentFoodCell) continue;
+            break;
+        }
+        this.setState({ foodCell: nextFoodCell });
     }
 
     handleKeyboardEvent(keyCode) {
@@ -121,11 +138,9 @@ class Board extends Component {
                 board.map((row, rowIdx) => 
                     <div key={rowIdx} className={classes.Board__row}>
                         {
-                            row.map((cellValue, cellIdx) => {
-                                return <div key={cellIdx} className={getClassNames(cellValue, foodCell, snakeCells)}>
-                                    { cellValue }
-                                </div>;
-                            })
+                            row.map((cellValue, cellIdx) => 
+                                <div key={cellIdx} className={getClassNames(cellValue, foodCell, snakeCells)}></div>
+                            )
                         }
                     </div>
                 )
