@@ -31,8 +31,8 @@ class Board extends Component {
         this.setState({ 
            board, 
            snake,
-           snakeCells: new Set([snake.head.value.cell]), 
-           foodCell: snake.head.value.cell + 5 
+           snakeCells: new Set([snake.tail.value.cell]), 
+           foodCell: snake.tail.value.cell + 5 
         });
 
         //Handle key press events
@@ -50,26 +50,28 @@ class Board extends Component {
 
     moveSnake() {
         const { snake, snakeCells, foodCell, direction, board } = this.state;
-        const { value: { row, col } } = snake.head;
+        const { value: { row, col } } = snake.tail;
         const currentHeadCoords = { row, col };
 
         //Get next head co ordinates and values
-        const nextHeadCoords = this.getNextHeadCoords(currentHeadCoords, direction);
+        const nextHeadCoords = geCoordsInDirection(currentHeadCoords, direction);
         const nextHeadCell = board[nextHeadCoords.row][nextHeadCoords.col];
 
-        //Check if nextHeadCell is going to be the foodCell
-        if(nextHeadCell === foodCell) {
-            this.handleFoodConsumption(foodCell, snakeCells);
-        }
-
-        const newHead = snake.unshift({ row: nextHeadCoords.row, col: nextHeadCoords.col, cell: nextHeadCell });
+        const newHead = snake.push({ row: nextHeadCoords.row, col: nextHeadCoords.col, cell: nextHeadCell });
         
         const newSnakeCells = new Set(snakeCells);
-        newSnakeCells.delete(snake.tail.value.cell);
+        newSnakeCells.delete(snake.head.value.cell);
         newSnakeCells.add(nextHeadCell);
 
         //Update tail
-        snake.pop();
+        snake.shift();
+
+        //Check if nextHeadCell is going to be the foodCell
+        if(nextHeadCell === foodCell) {
+            //This function mutates snake cells
+            this.growSnake(newSnakeCells);
+            this.handleFoodConsumption(foodCell, snakeCells);
+        }
 
         this.setState({
             snakeCells: newSnakeCells,
@@ -77,26 +79,14 @@ class Board extends Component {
         });
     }
 
-    getNextHeadCoords(currentHeadCoords, direction) {
-        let updatedHeadCoords = {};
-        const { row, col } = currentHeadCoords;
-        switch (direction) {
-            case Direction.UP:
-                updatedHeadCoords = { row: row - 1 < 0 ? BOARD_SIZE - 1 : row - 1, col };
-                break;
-            case Direction.DOWN:
-                updatedHeadCoords = { row: row + 1 >= BOARD_SIZE ? 0 : row + 1, col };
-                break;
-            case Direction.LEFT:
-                updatedHeadCoords = { row, col: col - 1 < 0 ? BOARD_SIZE - 1: col - 1 };
-                break;
-            case Direction.RIGHT: 
-                updatedHeadCoords = { row, col: col + 1 >= BOARD_SIZE ? 0 : col + 1 };
-                break;
-            default:
-                break;
-        }
-        return updatedHeadCoords;
+    growSnake(newSnakeCells) {
+        const { snake, direction, board } = this.state;
+        const { row, col } = getGrowthNodeCoords(snake.head, direction);
+        const newTailCell = board[row][col];
+        //Update the tail of the snake
+        snake.unshift({ row, col, cell: newTailCell });
+        //Add this cell to snake cell
+        newSnakeCells.add(newTailCell);
     }
 
     handleFoodConsumption(currentFoodCell, snakeCells) {
@@ -158,6 +148,58 @@ const getClassNames = (cellValue, foodCell, snakeCells) => {
         classNames.push(classes['Board__cell--green']); 
     }
     return classNames.join(' ');
-}
+};
+
+const getGrowthNodeCoords = (snakeTail, currentDirection) => {
+    const tailNextNodeDirection = getNextNodeDirection(snakeTail, currentDirection);
+    const growthDirection = getOppositeDirection(tailNextNodeDirection);
+    const currentTailCoords = { row: snakeTail.value.row, col: snakeTail.value.col };
+    return geCoordsInDirection(currentTailCoords, growthDirection);
+};
+
+const getNextNodeDirection = (node, currentDirection) => {
+    if(node.next === null) return currentDirection;
+    const { row: currentRow, col: currentCol } = node.value;
+    const { row: nextRow, col: nextCol } = node.next.value;
+    if(currentRow === nextRow && nextCol === currentCol + 1) return Direction.RIGHT;
+    else if(currentRow === nextRow && nextCol === currentCol - 1) return Direction.LEFT;
+    else if(currentCol === nextCol && nextRow === currentRow + 1) return Direction.DOWN;
+    else if(currentCol === nextCol && nextRow === currentRow - 1) return Direction.UP;
+};
+
+const getOppositeDirection = (currentDirection) => {
+    switch (currentDirection) {
+        case Direction.UP:
+            return Direction.DOWN;
+        case Direction.DOWN: 
+            return Direction.UP;
+        case Direction.LEFT:
+            return Direction.RIGHT;
+        default:
+            return Direction.LEFT;
+    }
+};
+
+const geCoordsInDirection = (coords, direction) => {
+    let updatedCoords = {};
+    const { row, col } = coords;
+    switch (direction) {
+        case Direction.UP:
+            updatedCoords = { row: row - 1 < 0 ? BOARD_SIZE - 1 : row - 1, col };
+            break;
+        case Direction.DOWN:
+            updatedCoords = { row: row + 1 >= BOARD_SIZE ? 0 : row + 1, col };
+            break;
+        case Direction.LEFT:
+            updatedCoords = { row, col: col - 1 < 0 ? BOARD_SIZE - 1: col - 1 };
+            break;
+        case Direction.RIGHT: 
+            updatedCoords = { row, col: col + 1 >= BOARD_SIZE ? 0 : col + 1 };
+            break;
+        default:
+            break;
+    }
+    return updatedCoords;
+};
 
 export default Board;
