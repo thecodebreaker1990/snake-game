@@ -38,10 +38,7 @@ class Board extends Component {
 
         //Handle key press events
         window.addEventListener("keydown", (event) => {
-            const newDirection = this.handleKeyboardEvent(event.code);
-            if(newDirection !== ''){
-                this.setState({ direction: newDirection });
-            }
+            this.handleKeyDown(event);
         });
 
        this.timerID = setInterval(() => {
@@ -62,7 +59,7 @@ class Board extends Component {
             return;
         }
         const nextHeadCell = board[nextHeadCoords.row][nextHeadCoords.col];
-        //Check if snake has hit its own body
+        //Check if snake will run into itself
         if(snakeCells.has(nextHeadCell)) {
             this.handleGameOver();
             return;
@@ -111,25 +108,14 @@ class Board extends Component {
         this.setState((state) => ({ foodCell: nextFoodCell, score: state.score + 1 }));
     }
 
-    handleKeyboardEvent(keyCode) {
-        let result = '';
-        switch (keyCode) {
-            case "ArrowUp":
-                result = Direction.UP;
-                break;
-            case "ArrowDown":
-                result = Direction.DOWN;
-                break;
-            case "ArrowLeft":
-                result = Direction.LEFT;
-                break;
-            case "ArrowRight":
-                result = Direction.RIGHT;
-                break;
-            default:
-                break;
-        }
-        return result;
+    handleKeyDown(e) {
+        const newDirection = getDirectionFromKey(e.code);
+        const isValidDirection = newDirection !== '';
+        if(!isValidDirection) return;
+        const { direction, snakeCells } = this.state;
+        const snakeWillRunIntoItself = getOppositeDirection(newDirection) === direction && snakeCells.size > 1;
+        if(snakeWillRunIntoItself) return;
+        this.setState({ direction: newDirection });
     }
 
     handleGameOver() {
@@ -229,6 +215,27 @@ const geCoordsInDirection = (coords, direction) => {
     }
     return updatedCoords;
 };
+
+const getDirectionFromKey = (keyCode) => {
+    let result = '';
+    switch (keyCode) {
+        case "ArrowUp":
+            result = Direction.UP;
+            break;
+        case "ArrowDown":
+            result = Direction.DOWN;
+            break;
+        case "ArrowLeft":
+            result = Direction.LEFT;
+            break;
+        case "ArrowRight":
+            result = Direction.RIGHT;
+            break;
+        default:
+            break;
+    }
+    return result;
+}
 
 const isOutOfBounds = (coords, board) => {
     const { row, col } = coords;
