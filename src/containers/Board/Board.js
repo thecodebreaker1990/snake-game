@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import { randomIntFromInterval, createBoard, getStartingSnakeLLValue } from "../../lib/utils";
 import LinkedList from "../../lib/SinglyLinkedList";
 
@@ -20,7 +20,8 @@ class Board extends Component {
             snakeCells: null,
             foodCell: null,
             snake: null,
-            direction: Direction.RIGHT
+            direction: Direction.RIGHT,
+            score: 0
         }
     }
 
@@ -43,9 +44,9 @@ class Board extends Component {
             }
         });
 
-       setInterval(() => {
+       this.timerID = setInterval(() => {
            this.moveSnake();
-       }, 1000);
+       }, 250);
     }
 
     moveSnake() {
@@ -55,7 +56,17 @@ class Board extends Component {
 
         //Get next head co ordinates and values
         const nextHeadCoords = geCoordsInDirection(currentHeadCoords, direction);
+        //Check if Snake has hit the boundary
+        if(isOutOfBounds(nextHeadCoords, board)) {
+            this.handleGameOver();
+            return;
+        }
         const nextHeadCell = board[nextHeadCoords.row][nextHeadCoords.col];
+        //Check if snake has hit its own body
+        if(snakeCells.has(nextHeadCell)) {
+            this.handleGameOver();
+            return;
+        }
 
         const newHead = snake.push({ row: nextHeadCoords.row, col: nextHeadCoords.col, cell: nextHeadCell });
         
@@ -97,7 +108,7 @@ class Board extends Component {
             if(snakeCells.has(nextFoodCell) || nextFoodCell === currentFoodCell) continue;
             break;
         }
-        this.setState({ foodCell: nextFoodCell });
+        this.setState((state) => ({ foodCell: nextFoodCell, score: state.score + 1 }));
     }
 
     handleKeyboardEvent(keyCode) {
@@ -121,9 +132,25 @@ class Board extends Component {
         return result;
     }
 
+    handleGameOver() {
+        clearInterval(this.timerID);
+        const { board } = this.state;
+        const snake = new LinkedList().push(getStartingSnakeLLValue(board));
+        this.setState({ 
+            score: 0, 
+            snake,
+            snakeCells: new Set([snake.tail.value.cell]), 
+            foodCell: snake.tail.value.cell + 5,
+            direction: Direction.RIGHT  
+        });
+        this.timerID = setInterval(() => { this.moveSnake(); }, 250);
+    }
+
     render() {
-        const { board, foodCell, snakeCells } = this.state;
-        return <div className={classes.Board}>
+        const { board, foodCell, snakeCells, score } = this.state;
+        return <Fragment>
+            <h1>Score: { score }</h1>
+            <div className={classes.Board}>
             {
                 board.map((row, rowIdx) => 
                     <div key={rowIdx} className={classes.Board__row}>
@@ -135,7 +162,8 @@ class Board extends Component {
                     </div>
                 )
             }
-        </div>
+            </div>
+        </Fragment>;
     }
 }
 
@@ -185,21 +213,28 @@ const geCoordsInDirection = (coords, direction) => {
     const { row, col } = coords;
     switch (direction) {
         case Direction.UP:
-            updatedCoords = { row: row - 1 < 0 ? BOARD_SIZE - 1 : row - 1, col };
+            updatedCoords = { row: row - 1, col };
             break;
         case Direction.DOWN:
-            updatedCoords = { row: row + 1 >= BOARD_SIZE ? 0 : row + 1, col };
+            updatedCoords = { row: row + 1, col };
             break;
         case Direction.LEFT:
-            updatedCoords = { row, col: col - 1 < 0 ? BOARD_SIZE - 1: col - 1 };
+            updatedCoords = { row, col: col - 1 };
             break;
         case Direction.RIGHT: 
-            updatedCoords = { row, col: col + 1 >= BOARD_SIZE ? 0 : col + 1 };
+            updatedCoords = { row, col: col + 1 };
             break;
         default:
             break;
     }
     return updatedCoords;
 };
+
+const isOutOfBounds = (coords, board) => {
+    const { row, col } = coords;
+    if(row < 0 || col < 0) return true;
+    if(row >= board.length || col >= board[0].length) return true;
+    return false;
+}
 
 export default Board;
