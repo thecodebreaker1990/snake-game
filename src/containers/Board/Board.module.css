@@ -1,6 +1,12 @@
 .Board {
-    outline: solid 2px rgb(134, 154, 189);
+    position: relative;
+    background-color: #578a34;
+    padding: 40px;
 }
+
+/* .Board__header {
+
+} */
 
 .Board__row {
     height: 40px;
@@ -9,12 +15,19 @@
 .Board__cell {
     height: 40px;
     width: 40px;
-    outline: solid 1px rgb(134, 154, 189);
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.Board__cell--light {
+    background: #aad752;
+}
+.Board__cell--dark {
+    background: #a2d149;
 }
 
-.Board__cell--green {
-    background-color: green;
+.Board__cell--snake {
+    background-color: #8640c7;
 }
 
 .Board__cell--red {

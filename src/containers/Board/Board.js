@@ -41,9 +41,9 @@ class Board extends Component {
             this.handleKeyDown(event);
         });
 
-       this.timerID = setInterval(() => {
-           this.moveSnake();
-       }, 250);
+    //    this.timerID = setInterval(() => {
+    //        this.moveSnake();
+    //    }, 250);
     }
 
     moveSnake() {
@@ -135,7 +135,7 @@ class Board extends Component {
     render() {
         const { board, foodCell, snakeCells, score } = this.state;
         return <Fragment>
-            <h1>Score: { score }</h1>
+            {/* <h1>Score: { score }</h1> */}
             <div className={classes.Board}>
             {
                 board.map((row, rowIdx) => 
@@ -155,11 +155,12 @@ class Board extends Component {
 
 const getClassNames = (cellValue, foodCell, snakeCells) => {
     let classNames = [classes.Board__cell];
+    classNames.push((cellValue + 1) % 2 === 0 ? classes['Board__cell--light'] : classes['Board__cell--dark']);
     if(cellValue === foodCell) {
         classNames.push(classes['Board__cell--red']); 
     }
     if(snakeCells.has(cellValue)) {
-        classNames.push(classes['Board__cell--green']); 
+        classNames.push(classes['Board__cell--snake']); 
     }
     return classNames.join(' ');
 };
