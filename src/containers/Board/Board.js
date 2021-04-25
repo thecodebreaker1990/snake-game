@@ -2,6 +2,10 @@ import React, { Component } from "react";
 import { randomIntFromInterval, createBoard, getStartingSnakeLLValue } from "../../lib/utils";
 import LinkedList from "../../lib/SinglyLinkedList";
 
+import moveAudio from "../../assets/audio/player-move.wav";
+import gameOverAudio from "../../assets/audio/game-over.wav";
+import foodConsumedAudio from "../../assets/audio/food-consumption.wav";
+
 import classes from "./Board.module.css";
 
 const BOARD_SIZE = 15;
@@ -41,9 +45,9 @@ class Board extends Component {
             this.handleKeyDown(event);
         });
 
-       this.timerID = setInterval(() => {
-           this.moveSnake();
-       }, 250);
+    //    this.timerID = setInterval(() => {
+    //        this.moveSnake();
+    //    }, 250);
     }
 
     moveSnake() {
@@ -105,7 +109,10 @@ class Board extends Component {
             if(snakeCells.has(nextFoodCell) || nextFoodCell === currentFoodCell) continue;
             break;
         }
-        this.setState((state) => ({ foodCell: nextFoodCell, score: state.score + 1 }));
+        this.setState((state) => ({ foodCell: nextFoodCell, score: state.score + 1 }), () => {
+            const foodConsumedMusic = new Audio(foodConsumedAudio);
+            foodConsumedMusic.play();
+        });
     }
 
     handleKeyDown(e) {
@@ -115,7 +122,10 @@ class Board extends Component {
         const { direction, snakeCells } = this.state;
         const snakeWillRunIntoItself = getOppositeDirection(newDirection) === direction && snakeCells.size > 1;
         if(snakeWillRunIntoItself) return;
-        this.setState({ direction: newDirection });
+        this.setState({ direction: newDirection }, () => {
+            const moveMusic = new Audio(moveAudio);
+            moveMusic.play();
+        });
     }
 
     handleGameOver() {
