@@ -1,12 +1,29 @@
+.Gamearea__score {
+    position: relative;
+    width: auto;
+    height: 70px;
+    background: #4a752c;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    color: white;
+}
+
+.Emoji {
+    font-size: 30px;
+}
+
+.Score {
+    font-size: 20px;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
 .Board {
     position: relative;
     background-color: #578a34;
     padding: 40px;
 }
-
-/* .Board__header {
-
-} */
 
 .Board__row {
     height: 40px;
@@ -30,6 +47,6 @@
     background-color: #8640c7;
 }
 
-.Board__cell--red {
+.Board__cell--food {
     background-color: red;
 }

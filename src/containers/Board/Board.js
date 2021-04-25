@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import { randomIntFromInterval, createBoard, getStartingSnakeLLValue } from "../../lib/utils";
 import LinkedList from "../../lib/SinglyLinkedList";
 
@@ -41,9 +41,9 @@ class Board extends Component {
             this.handleKeyDown(event);
         });
 
-    //    this.timerID = setInterval(() => {
-    //        this.moveSnake();
-    //    }, 250);
+       this.timerID = setInterval(() => {
+           this.moveSnake();
+       }, 250);
     }
 
     moveSnake() {
@@ -134,8 +134,11 @@ class Board extends Component {
 
     render() {
         const { board, foodCell, snakeCells, score } = this.state;
-        return <Fragment>
-            {/* <h1>Score: { score }</h1> */}
+        return <main className={classes.Gamearea}>
+            <div className={classes.Gamearea__score}>
+                <span className={classes.Emoji}>&#127942;</span>
+                <span className={classes.Score}>{ score }</span>
+            </div>
             <div className={classes.Board}>
             {
                 board.map((row, rowIdx) => 
@@ -149,7 +152,7 @@ class Board extends Component {
                 )
             }
             </div>
-        </Fragment>;
+        </main>;
     }
 }
 
@@ -157,7 +160,7 @@ const getClassNames = (cellValue, foodCell, snakeCells) => {
     let classNames = [classes.Board__cell];
     classNames.push((cellValue + 1) % 2 === 0 ? classes['Board__cell--light'] : classes['Board__cell--dark']);
     if(cellValue === foodCell) {
-        classNames.push(classes['Board__cell--red']); 
+        classNames.push(classes['Board__cell--food']); 
     }
     if(snakeCells.has(cellValue)) {
         classNames.push(classes['Board__cell--snake']); 
