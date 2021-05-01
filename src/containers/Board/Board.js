@@ -1,6 +1,9 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import { randomIntFromInterval, createBoard, getStartingSnakeLLValue } from "../../lib/utils";
 import LinkedList from "../../lib/SinglyLinkedList";
+
+import Modal from "../../components/UI/Modal/Modal";
+import Landing from "../../components/Landing/Landing";
 
 import moveAudio from "../../assets/audio/player-move.wav";
 import gameOverAudio from "../../assets/audio/game-over.wav";
@@ -25,7 +28,8 @@ class Board extends Component {
             foodCell: null,
             snake: null,
             direction: Direction.RIGHT,
-            score: 0
+            score: 0,
+            gameStarted: false
         }
     }
 
@@ -44,10 +48,16 @@ class Board extends Component {
         window.addEventListener("keydown", (event) => {
             this.handleKeyDown(event);
         });
+    }
 
-    //    this.timerID = setInterval(() => {
-    //        this.moveSnake();
-    //    }, 250);
+    hanldeStartGame() {
+        this.setState({ 
+            gameStarted: true
+         }, () => {
+            this.timerID = setInterval(() => {
+                this.moveSnake();
+            }, 250);
+        });
     }
 
     moveSnake() {
@@ -130,39 +140,37 @@ class Board extends Component {
 
     handleGameOver() {
         clearInterval(this.timerID);
-        const { board } = this.state;
-        const snake = new LinkedList().push(getStartingSnakeLLValue(board));
-        this.setState({ 
-            score: 0, 
-            snake,
-            snakeCells: new Set([snake.tail.value.cell]), 
-            foodCell: snake.tail.value.cell + 5,
-            direction: Direction.RIGHT  
-        });
-        this.timerID = setInterval(() => { this.moveSnake(); }, 250);
+        const gameOverMusic = new Audio(gameOverAudio);
+        gameOverMusic.play();
+        this.setState({ gameStarted: false });
     }
 
     render() {
-        const { board, foodCell, snakeCells, score } = this.state;
-        return <main className={classes.Gamearea}>
-            <div className={classes.Gamearea__score}>
-                <span className={classes.Emoji}>&#127942;</span>
-                <span className={classes.Score}>{ score }</span>
-            </div>
-            <div className={classes.Board}>
-            {
-                board.map((row, rowIdx) => 
-                    <div key={rowIdx} className={classes.Board__row}>
-                        {
-                            row.map((cellValue, cellIdx) => 
-                                <div key={cellIdx} className={getClassNames(cellValue, foodCell, snakeCells)}></div>
-                            )
-                        }
-                    </div>
-                )
-            }
-            </div>
-        </main>;
+        const { board, foodCell, snakeCells, score, gameStarted } = this.state;
+        return <Fragment>
+            <main className={classes.Gamearea}>
+                <div className={classes.Gamearea__score}>
+                    <span className={classes.Emoji}>&#127942;</span>
+                    <span className={classes.Score}>{ score }</span>
+                </div>
+                <div className={classes.Board}>
+                {
+                    board.map((row, rowIdx) => 
+                        <div key={rowIdx} className={classes.Board__row}>
+                            {
+                                row.map((cellValue, cellIdx) => 
+                                    <div key={cellIdx} className={getClassNames(cellValue, foodCell, snakeCells)}></div>
+                                )
+                            }
+                        </div>
+                    )
+                }
+                </div>
+            </main>
+            <Modal show={!gameStarted}>
+                <Landing start={this.hanldeStartGame.bind(this)} />
+            </Modal>
+        </Fragment>;
     }
 }
 
