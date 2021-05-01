@@ -18,6 +18,11 @@ const Direction = {
     UP: "up",
     DOWN: "down"
 };
+const GameStatus = {
+    OVER: "game_over",
+    IN_GAME: "in_game",
+    NOT_STARTED: "not_started"
+};
 
 class Board extends Component {
     constructor(props) {
@@ -29,20 +34,12 @@ class Board extends Component {
             snake: null,
             direction: Direction.RIGHT,
             score: 0,
-            gameStarted: false
+            gameStatus: GameStatus.NOT_STARTED
         }
     }
 
     componentDidMount() {
-        const board = createBoard(BOARD_SIZE);
-        const snake = new LinkedList().push(getStartingSnakeLLValue(board));
-    
-        this.setState({ 
-           board, 
-           snake,
-           snakeCells: new Set([snake.tail.value.cell]), 
-           foodCell: snake.tail.value.cell + 5 
-        });
+        this.resetGameData();
 
         //Handle key press events
         window.addEventListener("keydown", (event) => {
@@ -51,12 +48,29 @@ class Board extends Component {
     }
 
     hanldeStartGame() {
-        this.setState({ 
-            gameStarted: true
-         }, () => {
+        if(this.state.gameStatus === GameStatus.OVER) this.resetGameData();
+        let state = {
+            gameStatus: GameStatus.IN_GAME
+        };
+        if(this.state.gameStatus === GameStatus.OVER) {
+            state = { ...state, direction: Direction.RIGHT, score: 0 };
+        }
+        this.setState(state, () => {
             this.timerID = setInterval(() => {
                 this.moveSnake();
             }, 250);
+        });
+    }
+
+    resetGameData() {
+        const board = createBoard(BOARD_SIZE);
+        const snake = new LinkedList().push(getStartingSnakeLLValue(board));
+    
+        this.setState({ 
+           board, 
+           snake,
+           snakeCells: new Set([snake.tail.value.cell]), 
+           foodCell: snake.tail.value.cell + 5
         });
     }
 
@@ -142,11 +156,12 @@ class Board extends Component {
         clearInterval(this.timerID);
         const gameOverMusic = new Audio(gameOverAudio);
         gameOverMusic.play();
-        this.setState({ gameStarted: false });
+        this.setState({ gameStatus: GameStatus.OVER });
     }
 
     render() {
-        const { board, foodCell, snakeCells, score, gameStarted } = this.state;
+        const { board, foodCell, snakeCells, score, gameStatus } = this.state;
+        const buttonText = gameStatus === GameStatus.OVER ? "Restart Game" : "Play Game";
         return <Fragment>
             <main className={classes.Gamearea}>
                 <div className={classes.Gamearea__score}>
@@ -167,8 +182,8 @@ class Board extends Component {
                 }
                 </div>
             </main>
-            <Modal show={!gameStarted}>
-                <Landing start={this.hanldeStartGame.bind(this)} />
+            <Modal show={gameStatus !== GameStatus.IN_GAME}>
+                <Landing start={this.hanldeStartGame.bind(this)} buttonText={buttonText } />
             </Modal>
         </Fragment>;
     }
